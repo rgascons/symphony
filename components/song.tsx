@@ -22,13 +22,6 @@ export const Song = (props: SongProps) => {
           <span className="opacity-70">Albumtitle</span>
         </div>
       </div>
-      <div>
-        <div className="relative h-1 bg-gray-200">
-          <div className="absolute h-full w-1/2 bg-green-500 flex items-center justify-end">
-            <div className="rounded-full w-3 h-3 bg-white shadow"></div>
-          </div>
-        </div>
-      </div>
       <MusicPlayer songPath="/song.mp3" />
       <ul className="text-xs sm:text-base divide-y border-t cursor-default">
         <li className="flex items-center space-x-3 hover:bg-gray-100">

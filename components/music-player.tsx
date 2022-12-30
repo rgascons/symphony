@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type MusicPlayerProps = {
   songPath: string
@@ -21,19 +21,24 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isSongPlaying, setIsSongPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
+  const [progressBarPosition, setProgressBarPosition] = useState<string>('2%');
   const { duration } = audioRef.current || { duration: 0 };
 
-  // Add audio event listeners
-  const handleCurrentTimeChange = (e: Event) => {
+  const handleCurrentTimeChange = useCallback((e: Event) => {
     const audio = e.target as HTMLAudioElement;
     setCurrentTime(audio.currentTime);
-  };
+
+    // Sets the progress bar width.
+    // The min percentage supported by the CSS is 2%.
+    const percentageWholeNumber = Math.max(2, audio.currentTime / audio.duration*100);
+    setProgressBarPosition(`${percentageWholeNumber}%`);
+  }, []);
 
   useEffect(() => {
     if (!audioRef.current) return;
     const audio = audioRef.current;
     audio.addEventListener('timeupdate', handleCurrentTimeChange);
-  }, [audioRef]);
+  }, [audioRef, handleCurrentTimeChange]);
 
   const playSong = () => {
     if (!audioRef.current) return;
@@ -47,27 +52,36 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
 
   return (
-    <div className="flex justify-between text-xs font-semibold text-gray-500 px-4 py-2">
-      <audio controls={false} ref={audioRef}>
-        <source src={songPath}/>
-      </audio>
+    <>
       <div>
-        {formatMMSS(currentTime)}
+        <div className="relative h-1 bg-gray-200">
+          <div className="absolute h-full bg-green-500 flex items-center justify-end" style={{width: progressBarPosition}}>
+            <div className="rounded-full w-3 h-3 bg-white shadow"></div>
+          </div>
+        </div>
       </div>
-      <div className="flex space-x-3 p-2">
-        <button className="focus:outline-none">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
-        </button>
-        <button className="rounded-full w-8 h-8 flex items-center justify-center pl-0.5 ring-2 ring-gray-100 focus:outline-none" onClick={playSong}>
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{isSongPlaying ? <><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line></> : <polygon points="5 3 19 12 5 21 5 3"></polygon>}</svg>
-        </button>
-        <button className="focus:outline-none">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-        </button>
+      <div className="flex justify-between text-xs font-semibold text-gray-500 px-4 py-2">
+        <audio controls={false} ref={audioRef}>
+          <source src={songPath}/>
+        </audio>
+        <div>
+          {formatMMSS(currentTime)}
+        </div>
+        <div className="flex space-x-3 p-2">
+          <button className="focus:outline-none">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+          </button>
+          <button className="rounded-full w-8 h-8 flex items-center justify-center pl-0.5 ring-2 ring-gray-100 focus:outline-none" onClick={playSong}>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{isSongPlaying ? <><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line></> : <polygon points="5 3 19 12 5 21 5 3"></polygon>}</svg>
+          </button>
+          <button className="focus:outline-none">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+          </button>
+        </div>
+        <div>
+          {formatMMSS(duration)}
+        </div>
       </div>
-      <div>
-        {formatMMSS(duration)}
-      </div>
-    </div>
+    </>
   );
 };
