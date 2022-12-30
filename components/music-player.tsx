@@ -19,6 +19,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const { songPath } = props;
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const [isSongPlaying, setIsSongPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [progressBarPosition, setProgressBarPosition] = useState<string>('2%');
@@ -51,10 +52,25 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     }
   };
 
+  const handleChangeOfTrackTime = (event: React.MouseEvent) => {
+    if (!progressBarRef.current || !audioRef.current) return;
+
+    // Provides information about the size of an element and its position relative to the viewport.
+    // More info at https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+    const progressBarRect = progressBarRef.current.getBoundingClientRect();
+
+    const relativeClickPos = event.nativeEvent.clientX - progressBarRect.left;
+    const clickedTime = (duration * relativeClickPos) / progressBarRect.width;
+    const newProgressPosition = `${((relativeClickPos / progressBarRect.width) * 100).toFixed(2)}%`;
+    setProgressBarPosition(newProgressPosition);
+    setCurrentTime(clickedTime);
+    audioRef.current.currentTime = clickedTime;
+  };
+
   return (
     <>
       <div>
-        <div className="relative h-1 bg-gray-200">
+        <div className="relative h-1 bg-gray-200" ref={progressBarRef} onMouseDown={handleChangeOfTrackTime}>
           <div className="absolute h-full bg-green-500 flex items-center justify-end" style={{width: progressBarPosition}}>
             <div className="rounded-full w-3 h-3 bg-white shadow"></div>
           </div>
@@ -72,7 +88,12 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
           </button>
           <button className="rounded-full w-8 h-8 flex items-center justify-center pl-0.5 ring-2 ring-gray-100 focus:outline-none" onClick={playSong}>
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{isSongPlaying ? <><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line></> : <polygon points="5 3 19 12 5 21 5 3"></polygon>}</svg>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              {isSongPlaying ? 
+                <><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line></> : 
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              }
+            </svg>
           </button>
           <button className="focus:outline-none">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
