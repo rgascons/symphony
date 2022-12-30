@@ -1,4 +1,6 @@
 import Image, { StaticImageData } from "next/image";
+import { useRef,useState } from "react";
+
 
 export type MusicPlayerProps = {
   songImage: StaticImageData,
@@ -6,6 +8,22 @@ export type MusicPlayerProps = {
 
 export const MusicPlayer = (props: MusicPlayerProps) => {
   const { songImage } = props;
+  
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isSongPlaying, setIsSongPlaying] = useState<boolean>(false);
+
+  const playSong = () => {
+    if (!audioRef.current) return;
+    if (!isSongPlaying) {
+      audioRef.current.play();
+      setIsSongPlaying(true);
+    } else {
+      audioRef.current.pause();
+      setIsSongPlaying(false);
+    }
+    
+  };
+
   return (
     <div className="max-w-xl bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="relative">
@@ -25,6 +43,9 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         </div>
       </div>
       <div className="flex justify-between text-xs font-semibold text-gray-500 px-4 py-2">
+        <audio controls={false} ref={audioRef}>
+          <source src="/song.mp3"/>
+        </audio>
         <div>
         1:50
         </div>
@@ -32,7 +53,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           <button className="focus:outline-none">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
           </button>
-          <button className="rounded-full w-8 h-8 flex items-center justify-center pl-0.5 ring-2 ring-gray-100 focus:outline-none">
+          <button className="rounded-full w-8 h-8 flex items-center justify-center pl-0.5 ring-2 ring-gray-100 focus:outline-none" onClick={playSong}>
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
           </button>
           <button className="focus:outline-none">
