@@ -23,7 +23,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [isSongPlaying, setIsSongPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [progressBarPosition, setProgressBarPosition] = useState<string>('2%');
-  const { duration } = audioRef.current || { duration: 0 };
+  const [duration, setDuration] = useState<string>('0:00');
 
   const handleCurrentTimeChange = useCallback((e: Event) => {
     const audio = e.target as HTMLAudioElement;
@@ -35,11 +35,17 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     setProgressBarPosition(`${percentageWholeNumber}%`);
   }, []);
 
+  const addDuration = useCallback((e: Event) => {
+    const audio = e.target as HTMLAudioElement;
+    setDuration(formatMMSS(audio.duration));
+  }, []);
+
   useEffect(() => {
     if (!audioRef.current) return;
     const audio = audioRef.current;
     audio.addEventListener('timeupdate', handleCurrentTimeChange);
-  }, [audioRef, handleCurrentTimeChange]);
+    audio.addEventListener('canplay', addDuration);
+  }, [handleCurrentTimeChange, addDuration]);
 
   const playSong = () => {
     if (!audioRef.current) return;
@@ -52,6 +58,15 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     }
   };
 
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    audio.pause();
+    audio.load();
+    setIsSongPlaying(false);
+    setProgressBarPosition('2%');
+  }, [songPath]);
+
   const handleChangeOfTrackTime = (event: React.MouseEvent) => {
     if (!progressBarRef.current || !audioRef.current) return;
 
@@ -60,7 +75,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     const progressBarRect = progressBarRef.current.getBoundingClientRect();
 
     const relativeClickPos = event.nativeEvent.clientX - progressBarRect.left;
-    const clickedTime = (duration * relativeClickPos) / progressBarRect.width;
+    const clickedTime = (audioRef.current.duration * relativeClickPos) / progressBarRect.width;
     const newProgressPosition = `${((relativeClickPos / progressBarRect.width) * 100).toFixed(2)}%`;
     setProgressBarPosition(newProgressPosition);
     setCurrentTime(clickedTime);
@@ -72,7 +87,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       <div>
         <div className="relative h-1 bg-gray-200" ref={progressBarRef} onMouseDown={handleChangeOfTrackTime}>
           <div className="absolute h-full bg-green-500 flex items-center justify-end" style={{width: progressBarPosition}}>
-            <div className="rounded-full w-3 h-3 bg-white shadow"></div>
+            <div className="rounded-full w-3 h-3 hover:w-4 hover:h-4 bg-white shadow"></div>
           </div>
         </div>
       </div>
@@ -100,7 +115,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           </button>
         </div>
         <div>
-          {formatMMSS(duration)}
+          {duration}
         </div>
       </div>
     </>
